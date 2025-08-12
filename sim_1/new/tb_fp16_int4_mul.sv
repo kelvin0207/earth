@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module tb_int4_fp16_mul;
+module tb_fp16_int4_mul;
 
     // Clock & reset
     reg clk;
@@ -43,7 +43,7 @@ module tb_int4_fp16_mul;
     wire [15:0] out_fp16;
 
     // Instantiate DUT
-    int4_fp16_mul dut (
+    fp16_int4_mul dut (
         .clk       (clk),
         .rst_n     (rst_n),
         .in_valid  (in_valid),

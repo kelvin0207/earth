@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module int4_fp16_mul (
+module fp16_int4_mul (
     input   wire        clk,
     input   wire        rst_n,
 
