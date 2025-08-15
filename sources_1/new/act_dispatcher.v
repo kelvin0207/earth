@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: 
+// Engineer: Jingkui Yang
 // 
 // Create Date: 2025/08/11 13:11:15
 // Design Name: activation data dispatcher
@@ -29,7 +29,6 @@ module act_dispatcher #(
     // 与上游 controller 或 DMA 接口
     input  wire                  start,       // 开始调度
     input  wire [ADDR_WIDTH-1:0] base_addr,   // 激活数据起始地址
-    input  wire [ADDR_WIDTH-1:0] num_tiles,   // 需要发多少 tile
 
     // 与片上 buffer 接口
     output reg                   buf_rd_en,
