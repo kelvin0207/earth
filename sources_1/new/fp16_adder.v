@@ -188,7 +188,7 @@ module fp16_adder (
 
 
     // 规格化移位 (左移，直到最高位为1)
-    reg [4:0]   s1_exp_res;
+    reg [4:0]  s1_exp_res;
     reg [9:0]  s1_frac_res;
 
     always@(*) begin

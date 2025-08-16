@@ -40,9 +40,9 @@ module output_collector(
 	output reg	[255:0] 	out_sum
 );
 
-	wire [255:0]	out_vector;
-	wire			out_valid;
-
+	// spatial acc
+	wire 			sp_acc_out_valid;
+	wire [255:0] 	sp_acc_out_vector;
 	acc_array acc_array(
 		.clk		(clk),
 		.rst_n		(rst_n),
@@ -50,22 +50,27 @@ module output_collector(
 		.in_valid	(in_valid),
 		.in_psum	(in_psum),
 		// 输出
-		.out_valid	(out_valid),
-		.out_vector	(out_vector)
+		.out_valid	(sp_acc_out_valid),
+		.out_vector	(sp_acc_out_vector)
 	);
 
+	// temporal acc
+	wire			tp_acc_in_valid;
+	wire [255:0]	tp_acc_in_vector;
 	
-	// 累加寄存器（保存中间结果，Output-Stationary）
-    reg [255:0] 	accum_reg;
+	assign tp_acc_in_valid = in_bias_en? 1 : sp_acc_out_valid;
+	assign tp_acc_in_vector = in_bias_en? in_bias_data : sp_acc_out_vector;
 
-	always@(posedge clk or rst_n) begin
-		if(~rst_n) begin
-			accum_reg <= 0;
-		end
-		else if (in_bias_en) begin
-			accum_reg <= in_bias_data;
-		end
-		else begin
-			accum_reg <= 
+	acc_temporal acc_temporal(
+    	.clk			(clk),
+    	.rst_n			(rst_n),
+		// input side
+		.in_valid		(tp_acc_in_valid),
+		.in_vector		(tp_acc_in_vector),
+		.in_accum_done	(in_accum_done),
+		// output side
+		.out_valid		(out_valid),
+		.out_vector		(out_sum)
+    );
 
 endmodule
