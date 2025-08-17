@@ -32,11 +32,13 @@ module token_buffer(
     input  wire [7:0]   in_dram_addr,
     input  wire [63:0]  in_dram_wdata,
     output wire [63:0]  out_dram_rdata,
+    output wire         out_dram_rdata_valid,
 
     // ==== Dispatcher ====
     input  wire         in_disp_req,
     input  wire [7:0]   in_disp_addr,
     output wire [63:0]  out_disp_rdata,
+    output wire         out_disp_rdata_valid,
 
     // ==== Collector ====
     input  wire         in_col_req,
@@ -48,7 +50,8 @@ module token_buffer(
     input  wire         in_gate_we,
     input  wire [7:0]   in_gate_addr,
     input  wire [63:0]  in_gate_wdata,
-    output wire [63:0]  out_gate_rdata
+    output wire [63:0]  out_gate_rdata,
+    output wire         out_gate_rdata_valid
 );
 
     // reg in
@@ -165,20 +168,33 @@ module token_buffer(
     // reg out 
     reg [1:0]   out_src_sel;
     reg [63:0]  out_sram_rdata;
+    reg         out_gate_req;
+    reg         out_disp_req;
+    reg         out_dram_req;
 
     always@(posedge clk or negedge rst_n) begin
-        if (rst_n) begin
+        if (~rst_n) begin
             out_src_sel     <= 0;
             out_sram_rdata  <= 0;
+            out_gate_req    <= 0;
+            out_disp_req    <= 0;
+            out_dram_req    <= 0;
         end
         else begin
             out_src_sel     <= src_sel;
             out_sram_rdata  <= sram_rdata;
+            out_gate_req    <= gate_req;
+            out_disp_req    <= disp_req;
+            out_dram_req    <= dram_req;
         end
     end
 
-    assign out_dram_rdata = (out_src_sel == 2'd0) ? out_sram_rdata : 0;
-    assign out_disp_rdata = (out_src_sel == 2'd1) ? out_sram_rdata : 0;
-    assign out_gate_rdata = (out_src_sel == 2'd3) ? out_sram_rdata : 0;
+    assign out_dram_rdata_valid = (out_src_sel == 2'd0) && out_dram_req;
+    assign out_disp_rdata_valid = (out_src_sel == 2'd1) && out_disp_req;
+    assign out_gate_rdata_valid = (out_src_sel == 2'd3) && out_gate_req;
+
+    assign out_dram_rdata = out_gate_rdata_valid ? out_sram_rdata : 0;
+    assign out_disp_rdata = out_disp_rdata_valid ? out_sram_rdata : 0;
+    assign out_gate_rdata = out_dram_rdata_valid ? out_sram_rdata : 0;
 
 endmodule
