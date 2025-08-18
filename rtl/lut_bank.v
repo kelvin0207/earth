@@ -30,7 +30,6 @@ module lut_bank #(
 
     // LUT 更新接口
     input  wire                  cfg_update,   // 更新使能
-    input  wire [63:0]           lut_wr_data,  // 一次更新 64 bit (16项 * 4bit/项)
     input  wire                  lut_wr_valid,
 
     // 查表接口
@@ -52,7 +51,7 @@ module lut_bank #(
         else if (cfg_update && lut_wr_valid) begin
             for (i=0; i<NUM_LUTS; i=i+1)
                 for (j=0; j<LUT_DEPTH; j=j+1)
-                    lut_mem[i][j] <= lut_wr_data[j*LUT_WIDTH +: LUT_WIDTH];
+                    lut_mem[i][j] <= in_weights[i*LUT_DEPTH*LUT_WIDTH + j*LUT_WIDTH +: LUT_WIDTH];
         end
     end
 

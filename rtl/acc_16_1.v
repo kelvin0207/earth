@@ -95,6 +95,25 @@ module acc_16_1 (
     // out_ready for s0 adders is driven by stage1 join logic (declared later)
     wire [7:0]  s0_out_ready[0:7];
 
+    wire [3:0]  s1_out_valid;
+    wire [3:0]  s1_in_ready;
+
+	wire [15:0] s1_out_sum0;
+	wire [15:0] s1_out_sum1;
+	wire [15:0] s1_out_sum2;
+	wire [15:0] s1_out_sum3;
+
+	wire [1:0]  s2_out_valid;
+    wire [1:0]  s2_in_ready;
+
+	wire [15:0] s2_out_sum0;
+	wire [15:0] s2_out_sum1;
+	
+    wire        s3_in_valid;
+    wire        s3_in_ready;
+    wire [15:0] s3_in_a;
+    wire [15:0] s3_in_b;
+
 	fp16_adder adder0_0(
 		.clk       (clk),
 		.rst_n     (rst_n),
@@ -130,7 +149,7 @@ module acc_16_1 (
 		.in_a      (s0_op4),
 		.in_b      (s0_op5),
 		.out_valid (s0_out_valid[2]),
-		.out_ready (),
+		.out_ready (s1_in_ready[1]),
 		.out_sum   (s0_out_sum2)
 	);
 
@@ -143,7 +162,7 @@ module acc_16_1 (
 		.in_a      (s0_op6),
 		.in_b      (s0_op7),
 		.out_valid (s0_out_valid[3]),
-		.out_ready (),
+		.out_ready (s1_in_ready[1]),
 		.out_sum   (s0_out_sum3)
 	);
 	
@@ -156,7 +175,7 @@ module acc_16_1 (
 		.in_a      (s0_op8),
 		.in_b      (s0_op9),
 		.out_valid (s0_out_valid[4]),
-		.out_ready (),
+		.out_ready (s1_in_ready[2]),
 		.out_sum   (s0_out_sum4)
 	);
 
@@ -169,7 +188,7 @@ module acc_16_1 (
 		.in_a      (s0_op10),
 		.in_b      (s0_op11),
 		.out_valid (s0_out_valid[5]),
-		.out_ready (),
+		.out_ready (s1_in_ready[2]),
 		.out_sum   (s0_out_sum5)
 	);
 
@@ -182,7 +201,7 @@ module acc_16_1 (
 		.in_a      (s0_op12),
 		.in_b      (s0_op13),
 		.out_valid (s0_out_valid[6]),
-		.out_ready (),
+		.out_ready (s1_in_ready[3]),
 		.out_sum   (s0_out_sum6)
 	);
 
@@ -195,7 +214,7 @@ module acc_16_1 (
 		.in_a      (s0_op14),
 		.in_b      (s0_op15),
 		.out_valid (s0_out_valid[7]),
-		.out_ready (),
+		.out_ready (s1_in_ready[3]),
 		.out_sum   (s0_out_sum7)
 	);
 
@@ -206,24 +225,6 @@ module acc_16_1 (
     // Stage 1: 8 -> 4 adders
     // -------------------------
     // Join: pair (0,1)->0 ; (2,3)->1 ; (4,5)->2 ; (6,7)->3
-    wire [3:0]  s1_out_valid;
-    wire [3:0]  s1_in_ready;
-
-	wire [15:0] s1_out_sum0;
-	wire [15:0] s1_out_sum1;
-	wire [15:0] s1_out_sum2;
-	wire [15:0] s1_out_sum3;
-
-	wire [1:0]  s2_out_valid;
-    wire [1:0]  s2_in_ready;
-
-	wire [15:0] s2_out_sum0;
-	wire [15:0] s2_out_sum1;
-	
-    wire        s3_in_valid;
-    wire        s3_in_ready;
-    wire [15:0] s3_in_a;
-    wire [15:0] s3_in_b;
 
 	fp16_adder adder1_0(
 		.clk       (clk),

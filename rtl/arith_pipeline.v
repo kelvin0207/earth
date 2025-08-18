@@ -60,14 +60,14 @@ module arith_pipeline(
     reg [15:0] rom_gelu [0:255];
     
     // 写入假数据避免被优化掉
-    integer i;
-    initial begin
-        for (i = 0; i < 256; i = i + 1) begin
-            rom_exp[i]  = i;        // placeholder
-            rom_div[i]  = 16'h0001; // placeholder
-            rom_gelu[i] = 16'h0000; // placeholder
-        end
-    end
+    // integer i;
+    // initial begin
+    //     for (i = 0; i < 256; i = i + 1) begin
+    //         rom_exp[i]  = i;        // placeholder
+    //         rom_div[i]  = 16'h0001; // placeholder
+    //         rom_gelu[i] = 16'h0000; // placeholder
+    //     end
+    // end
 
     // stage in
     reg [15:0]  s0_data;

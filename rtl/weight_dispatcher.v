@@ -56,7 +56,6 @@ module weight_dispatcher(
         .clk			(clk),
         .rst_n			(rst_n),
         .cfg_update		(cfg_update_LUT),
-        .lut_wr_data	(wbuf_rd_data[63:0]),
         .lut_wr_valid	(wbuf_rd_valid),
         .in_weights		(wbuf_rd_data),   // 原始权重作为查表索引
         .out_weights	(lut_out)

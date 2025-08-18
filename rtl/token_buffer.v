@@ -123,7 +123,7 @@ module token_buffer(
 
     // inst sram wrapper
     sram16_wrapper #(
-        .ADDR_WIDTH(8),
+        .ADDR_WIDTH(2),
         .DATA_WIDTH(64)
     ) sram_inst (
         .clk        (clk),
@@ -157,11 +157,12 @@ module token_buffer(
                 sram_addr  = gate_addr;
                 sram_wdata = gate_wdata;
             end
-            default: begin
-                sram_we    = 0;
-                sram_addr  = 0;
-                sram_wdata = 0;
-            end
+            // default brach cannot reached
+            // default: begin
+            //     sram_we    = 0;
+            //     sram_addr  = 0;
+            //     sram_wdata = 0;
+            // end
         endcase
     end
 
