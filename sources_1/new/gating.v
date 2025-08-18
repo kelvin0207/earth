@@ -135,7 +135,7 @@ module gating_module (
         end
     end
 
-    always@(posedge clk or rst_n) begin
+    always@(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
             read_idx    <= 0;
             expert_id   <= 0;
@@ -178,7 +178,7 @@ module gating_module (
         .out_data   (out_data)
     );
 
-    always@(posedge clk or rst_n) begin
+    always@(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
             tbuf_rd_en      <= 0;
             tbuf_rd_addr    <= 0;

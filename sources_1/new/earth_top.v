@@ -56,9 +56,6 @@ module earth_top (
     wire        cfg_update_LUT;   // 是否加载数据到 LUT
 	wire 		cfg_bias_en;
 
-	// === main ctrl. -> buffer ===
-	wire [1:0]	cfg_src_sel;
-
 	// === gating <-> buffer ===
 	wire 		g2tbuf_wr_en;
 	wire [7:0]	g2tbuf_wr_addr;
@@ -88,6 +85,8 @@ module earth_top (
     wire [4095:0] 	wgt_wbuf_rd_data;
     wire        	wgt_wbuf_rd_valid;
 
+    assign wgt_wbuf_rd_valid = dram_rd_valid;
+    
     // === Dispatcher -> PE array ===
     wire        	act_out_valid;
 	wire			act_out_ready;
@@ -142,7 +141,7 @@ module earth_top (
         .clk					(clk), 
 		.rst_n					(rst_n),
     	// Source select: 0=DRAM, 1=Dispatcher, 2=Collector, 3=Gating
-        .in_src_sel				(cfg_src_sel), 
+        .in_src_sel				(cfg_status[1:0]), 
 		// DRAM interface
         .in_dram_req			(dram_rd_valid),
 		.in_dram_we				(cfg_dram2tbuf),

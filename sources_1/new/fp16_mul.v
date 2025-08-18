@@ -185,7 +185,7 @@ module fp16_mul(
         end
         else if(s1_valid & out_ready) begin
             out_valid   <= s1_valid;
-            out_prod    <= {s1_sign_out, s1_exp_shift, s1_mant_shift[9:0]};
+            out_prod    <= s1_is_zero? 0 : {s1_sign_out, s1_exp_shift, s1_mant_shift[9:0]};
         end
     end
 

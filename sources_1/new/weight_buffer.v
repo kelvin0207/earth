@@ -95,7 +95,7 @@ module weight_buffer(
             out_disp_rdata  <= 0;
         end
         else begin
-            out_disp_rdata  <= sram_rdata;
+            out_disp_rdata  <= disp_req? sram_rdata : 0;
         end
     end
 

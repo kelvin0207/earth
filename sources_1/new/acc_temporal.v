@@ -232,7 +232,7 @@ module acc_temporal(
     );
 
     always@(posedge clk or negedge rst_n) begin
-        if (rst_n) begin
+        if (~rst_n) begin
             out_valid   <= 0;
             out_vector  <= 0;
         end

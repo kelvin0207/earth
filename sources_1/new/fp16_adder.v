@@ -181,7 +181,7 @@ module fp16_adder (
     wire [12:0] s1_mant_sum_abs;
 
     // 结果符号
-    assign s1_sign_res = s1_mant_sum[12]? ~s0_sign_large : s0_sign_large;
+    assign s1_sign_res = s1_mant_sum[12]? ~s1_sign_large : s1_sign_large;
     // 绝对值尾数
     assign s1_mant_sum_abs = s1_mant_sum[12]? (~s1_mant_sum+1) : s1_mant_sum;
 

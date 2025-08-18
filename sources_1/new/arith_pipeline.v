@@ -111,7 +111,7 @@ module arith_pipeline(
     reg [15:0]  add_in_b;
     wire         add_out_valid;
 
-    always@(posedge clk or rst_n) begin
+    always@(posedge clk or negedge rst_n) begin
         if(~rst_n) begin
             buffer_idx <= 0;
             for (i = 0; i < 8; i = i + 1) begin
@@ -209,7 +209,7 @@ module arith_pipeline(
             out_valid   <= 0;
             out_data    <= 0;
         end
-        else if (s0_mode==2'b10) begin
+        else if (s0_mode==2'b10 && s0_valid) begin
             out_valid   <= 1;
             out_data    <= rom_gelu[s0_data[7:0]];
         end
