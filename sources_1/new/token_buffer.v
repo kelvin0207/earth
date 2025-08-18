@@ -27,52 +27,52 @@ module token_buffer(
     input  wire [1:0] in_src_sel,
 
     // ==== DRAM ====
-    input  wire         in_dram_req,
-    input  wire         in_dram_we,
-    input  wire [7:0]   in_dram_addr,
-    input  wire [63:0]  in_dram_wdata,
-    output wire [63:0]  out_dram_rdata,
-    output wire         out_dram_rdata_valid,
+    input  wire             in_dram_req,
+    input  wire             in_dram_we,
+    input  wire [7:0]       in_dram_addr,
+    input  wire [1023:0]    in_dram_wdata,
+    output wire [1023:0]    out_dram_rdata,
+    output wire             out_dram_rdata_valid,
 
     // ==== Dispatcher ====
-    input  wire         in_disp_req,
-    input  wire [7:0]   in_disp_addr,
-    output wire [63:0]  out_disp_rdata,
-    output wire         out_disp_rdata_valid,
+    input  wire             in_disp_req,
+    input  wire [7:0]       in_disp_addr,
+    output wire [1023:0]    out_disp_rdata,
+    output wire             out_disp_rdata_valid,
 
     // ==== Collector ====
-    input  wire         in_col_req,
-    input  wire [7:0]   in_col_addr,
-    input  wire [63:0]  in_col_wdata,
+    input  wire             in_col_req,
+    input  wire [7:0]       in_col_addr,
+    input  wire [1023:0]    in_col_wdata,
 
     // ==== Gating ====
-    input  wire         in_gate_req,
-    input  wire         in_gate_we,
-    input  wire [7:0]   in_gate_addr,
-    input  wire [63:0]  in_gate_wdata,
-    output wire [63:0]  out_gate_rdata,
-    output wire         out_gate_rdata_valid
+    input  wire             in_gate_req,
+    input  wire             in_gate_we,
+    input  wire [7:0]       in_gate_addr,
+    input  wire [1023:0]    in_gate_wdata,
+    output wire [1023:0]    out_gate_rdata,
+    output wire             out_gate_rdata_valid
 );
 
     // reg in
-    reg [1:0]   src_sel;
+    reg [1:0]       src_sel;
 
-    reg         dram_req;
-    reg         dram_we;
-    reg [7:0]   dram_addr;
-    reg [63:0]  dram_wdata;
+    reg             dram_req;
+    reg             dram_we;
+    reg [7:0]       dram_addr;
+    reg [1023:0]    dram_wdata;
 
-    reg         disp_req;
-    reg [7:0]   disp_addr;
+    reg             disp_req;
+    reg [7:0]       disp_addr;
 
-    reg         col_req;
-    reg [7:0]   col_addr;
-    reg [63:0]  col_wdata;
+    reg             col_req;
+    reg [7:0]       col_addr;
+    reg [1023:0]    col_wdata;
 
-    reg         gate_req;
-    reg         gate_we;
-    reg [7:0]   gate_addr;
-    reg [63:0]  gate_wdata;
+    reg             gate_req;
+    reg             gate_we;
+    reg [7:0]       gate_addr;
+    reg [1023:0]    gate_wdata;
 
     always@(posedge clk or negedge rst_n) begin
         if(~rst_n) begin
@@ -118,8 +118,8 @@ module token_buffer(
     // MUX for SRAM inputs
     reg             sram_we;
     reg  [7:0]      sram_addr;
-    reg  [63:0]     sram_wdata;
-    wire [63:0]     sram_rdata;
+    reg  [1023:0]   sram_wdata;
+    wire [1023:0]   sram_rdata;
 
     // inst sram wrapper
     sram16_wrapper #(
@@ -130,7 +130,7 @@ module token_buffer(
         .load_en    (sram_we),
         .load_addr  (sram_addr),
         .load_data  (sram_wdata),
-        .fetch_en   (1),
+        .fetch_en   (1'b1),
         .fetch_addr (sram_addr),
         .fetch_data (sram_rdata)
     );
@@ -145,7 +145,7 @@ module token_buffer(
             2'd1: begin // Dispatcher (read only)
                 sram_we    = 1'b0;
                 sram_addr  = disp_addr;
-                sram_wdata = {DATA_WIDTH{1'b0}};
+                sram_wdata = 0;
             end
             2'd2: begin // Collector (write only)
                 sram_we    = col_req;
@@ -166,11 +166,11 @@ module token_buffer(
     end
 
     // reg out 
-    reg [1:0]   out_src_sel;
-    reg [63:0]  out_sram_rdata;
-    reg         out_gate_req;
-    reg         out_disp_req;
-    reg         out_dram_req;
+    reg [1:0]       out_src_sel;
+    reg [1023:0]    out_sram_rdata;
+    reg             out_gate_req;
+    reg             out_disp_req;
+    reg             out_dram_req;
 
     always@(posedge clk or negedge rst_n) begin
         if (~rst_n) begin

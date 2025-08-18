@@ -36,6 +36,14 @@ module fp16_acc(
 	reg	[4:0]	b_exp;
 	reg [12:0]	b_mant;
 
+    wire        sign_large_cmp;
+    wire [12:0] mant_sum_abs;
+
+    reg  [10:0] a_mant_shifted;
+    reg  [10:0] b_mant_shifted;
+    reg  [4:0]  exp_large;
+    reg         sign_large;
+
 	// input reg
 	always@(posedge clk or negedge rst_n) begin
 		if (~rst_n) begin
@@ -74,10 +82,6 @@ module fp16_acc(
     assign a_lst_b = (a_exp < b_exp);
     assign exp_diff = a_lgt_b ? (a_exp - b_exp) : (b_exp - a_exp);
 
-    reg  [10:0] a_mant_shifted;
-    reg  [10:0] b_mant_shifted;
-    reg  [4:0]  exp_large;
-    reg         sign_large;
 
     always @(*) begin
         if (a_lgt_b) begin // a > b
@@ -102,9 +106,6 @@ module fp16_acc(
     
 	// 尾数加减，考虑符号
     reg [12:0]  mant_sum;
-
-    wire        sign_large_cmp;
-    wire [12:0] mant_sum_abs;
 
     always @(*) begin
         if (a_sign ^ b_sign) begin // a b different sign, sub

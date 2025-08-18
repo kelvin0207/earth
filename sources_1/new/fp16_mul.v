@@ -124,7 +124,7 @@ module fp16_mul(
     assign s0_comb_sign = s0_sign_a ^ s0_sign_b;
     assign s0_comb_is_zero = s0_is_zero_a | s0_is_zero_b;
 
-    assign s0_exp_sum = s0_exp_a + s0_exp_b - 6'b15;
+    assign s0_exp_sum = s0_exp_a + s0_exp_b - 6'd15;
 
     assign s0_mant_a = {1'b1, s0_frac_a};
     assign s0_mant_b = {1'b1, s0_frac_b};

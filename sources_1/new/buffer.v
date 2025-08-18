@@ -45,6 +45,14 @@ module buffer#(
 
     reg [DATA_WIDTH-1:0] mem [0:(1<<ADDR_WIDTH)-1];
 
+     // ==== 仿真初始化 ====
+    integer i;
+    initial begin
+        for (i=0; i<(1<<ADDR_WIDTH); i=i+1) begin
+            mem[i] = 0;           // 或者设置成其他仿真初值
+        end
+    end
+    
     // no_reset + sync read & write
     always @(posedge clk) begin
         if (wr_en) begin

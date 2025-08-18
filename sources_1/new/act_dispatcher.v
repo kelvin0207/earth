@@ -19,65 +19,128 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module act_dispatcher #(
-    parameter ADDR_WIDTH = 8,
-    parameter ACT_WIDTH  = 1024 // 16组激活总线宽度
-)(
-    input  wire                  clk,
-    input  wire                  rst_n,
+// Fetch from token buffer
+// dispatch to pe array
+module act_dispatcher(
+    input  wire             clk,
+    input  wire             rst_n,
 
-    // 与上游 controller 或 DMA 接口
-    input  wire                  start,       // 开始调度
-    input  wire [ADDR_WIDTH-1:0] base_addr,   // 激活数据起始地址
+    // 上游控制接口
+    input  wire             cfg_start,       // 开始调度
+    input  wire [7:0]       cfg_base_addr,   // 激活数据起始地址
 
-    // 与片上 buffer 接口
-    output reg                   buf_rd_en,
-    output reg  [ADDR_WIDTH-1:0] buf_rd_addr,
-    input  wire [ACT_WIDTH-1:0]  buf_rd_data,
+    // 与片上 token buffer 接口
+    output reg              tbuf_rd_en,
+    output reg  [7:0]       tbuf_rd_addr,
+    input  wire [1023:0]    tbuf_rd_data,
+    input  wire             tbuf_rd_valid,
 
     // 与 PE array 接口
-    output reg                   out_valid,
-    input  wire                  out_ready,
-    output reg  [ACT_WIDTH-1:0]  out_acts
+    output reg              out_valid,
+    input  wire             out_ready,
+    output reg  [1023:0]    out_acts
 );
 
-    reg [ADDR_WIDTH-1:0] tile_cnt;
-    reg                  busy;
+    // FSM 状态编码
+    localparam S_IDLE  = 2'd0;
+    localparam S_FETCH = 2'd1;
+    localparam S_DISP  = 2'd2;
 
+    reg [1:0] state, next_state;
+    reg [7:0] rd_addr_reg;   // 当前读地址寄存
+
+    // FSM: 状态转移
     always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            busy        <= 1'b0;
-            tile_cnt    <= {ADDR_WIDTH{1'b0}};
-            buf_rd_en   <= 1'b0;
-            buf_rd_addr <= {ADDR_WIDTH{1'b0}};
-            out_valid   <= 1'b0;
-            out_acts    <= {ACT_WIDTH{1'b0}};
-        end else begin
-            if (start && !busy) begin
-                busy        <= 1'b1;
-                tile_cnt    <= 0;
-                buf_rd_en   <= 1'b1;
-                buf_rd_addr <= base_addr;
-            end else if (busy) begin
-                if (buf_rd_en) begin
-                    // 下周期可以把数据送到 PE
-                    out_acts  <= buf_rd_data;
-                    out_valid <= 1'b1;
-                    buf_rd_en <= 1'b0; // 停止读，等待 PE array 消费
-                end else if (out_valid && out_ready) begin
-                    // PE array 接收完成
-                    out_valid <= 1'b0;
+        if (~rst_n)
+            state <= S_IDLE;
+        else
+            state <= next_state;
+    end
 
-                    // 如果还有数据，发下一次读
-                    if (tile_cnt + 1 < num_tiles) begin
-                        tile_cnt    <= tile_cnt + 1;
-                        buf_rd_en   <= 1'b1;
-                        buf_rd_addr <= base_addr + tile_cnt + 1;
-                    end else begin
-                        busy <= 1'b0; // 完成所有 tile
+    // FSM: 下一个状态逻辑
+    always @(*) begin
+        case (state)
+            S_IDLE: begin
+                if (cfg_start)
+                    next_state = S_FETCH;
+                else
+                    next_state = S_IDLE;
+            end
+
+            S_FETCH: begin
+                if (tbuf_rd_valid)   // token buffer 返回有效数据
+                    next_state = S_DISP;
+                else
+                    next_state = S_FETCH;
+            end
+
+            S_DISP: begin
+                if (out_valid && out_ready)  // PE array 接收完成
+                    next_state = S_FETCH;
+                else
+                    next_state = S_DISP;
+            end
+
+            default: next_state = S_IDLE;
+        endcase
+    end
+
+    // 读地址管理
+    always @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            rd_addr_reg <= 8'd0;
+        end 
+        else if (state == S_IDLE && cfg_start) begin
+            rd_addr_reg <= cfg_base_addr;   // 初始化
+        end 
+        else if (state == S_DISP && out_valid && out_ready) begin
+            rd_addr_reg <= rd_addr_reg + 1'b1; // 下一次地址
+        end
+    end
+
+    // token buffer 控制
+    always @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            tbuf_rd_en   <= 1'b0;
+            tbuf_rd_addr <= 8'd0;
+        end else begin
+            case (state)
+                S_FETCH: begin
+                    tbuf_rd_en   <= 1'b1;
+                    tbuf_rd_addr <= rd_addr_reg;
+                end
+                default: begin
+                    tbuf_rd_en   <= 1'b0;
+                end
+            endcase
+        end
+    end
+
+    // 输出控制
+    always @(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            out_valid <= 1'b0;
+            out_acts  <= 1024'd0;
+        end 
+        else begin
+            case (state)
+                S_FETCH: begin
+                    if (tbuf_rd_valid) begin
+                        out_acts  <= tbuf_rd_data;
+                        out_valid <= 1'b1;
                     end
                 end
-            end
+
+                S_DISP: begin
+                    if (out_valid && out_ready) begin
+                        out_valid <= 1'b0; // 发送完成
+                    end
+                end
+
+                default: begin
+                    out_valid <= 1'b0;
+                end
+            endcase
         end
     end
 

@@ -95,25 +95,6 @@ module arith_pipeline(
     reg [15:0]  buffer_weight [0:7];
     reg [2:0]   buffer_idx;
 
-    always@(posedge clk or rst_n) begin
-        if(~rst_n) begin
-            buffer_idx <= 0;
-            for (i = 0; i < 8; i = i + 1) begin
-                buffer_weight[i] <= 0;
-            end
-        end
-        else if (mode==2'b00 || mode==2'b10) begin
-            buffer_idx <= 0; // only reset idx is enough
-        end
-        else if (mode == 2'b01) begin
-            buffer_weight[buffer_idx] <= ??
-            buffer_idx <= buffer_idx + 3'b1;
-        end
-        else if(mode == 2'b11) begin
-            buffer_idx <= buffer_idx + 3'b1;
-        end
-    end
-
     // mode = 0: LUT get exp and acc
     // mode = 1: LUT get frac and mul, stored in 
     // mode = 2: LUT get GeLU
@@ -122,17 +103,38 @@ module arith_pipeline(
     reg         mul_in_valid;
     reg [15:0]  mul_in_a;
     reg [15:0]  mul_in_b;
-    reg         mul_out_valid;
-    reg [15:0]  mul_out_prod;
+    wire         mul_out_valid;
+    wire [15:0]  mul_out_prod;
     
     reg         add_in_valid;
     reg [15:0]  add_in_a;
     reg [15:0]  add_in_b;
-    reg         add_out_valid;
-    reg [15:0]  add_out_sum;
+    wire         add_out_valid;
+
+    always@(posedge clk or rst_n) begin
+        if(~rst_n) begin
+            buffer_idx <= 0;
+            for (i = 0; i < 8; i = i + 1) begin
+                buffer_weight[i] <= 0;
+            end
+        end
+        else if (s0_mode==2'b00 || s0_mode==2'b10) begin
+            buffer_idx <= 0; // only reset idx is enough
+        end
+        else if (s0_mode == 2'b01) begin
+            buffer_weight[buffer_idx] <= mul_out_prod;
+            buffer_idx <= buffer_idx + 3'b1;
+        end
+        else if(s0_mode == 2'b11) begin
+            buffer_idx <= buffer_idx + 3'b1;
+        end
+    end
+
+
+    wire [15:0]  add_out_sum;
 
     always@(*) begin
-        case(mode)
+        case(s0_mode)
             2'b00: begin
                 // don't need mul
                 mul_in_valid = 0;
@@ -180,7 +182,7 @@ module arith_pipeline(
         .in_b       (mul_in_b),
         // Output side
         .out_valid  (mul_out_valid),
-        .out_ready  (1),
+        .out_ready  (1'b1),
         .out_prod   (mul_out_prod)
     );
 
@@ -194,11 +196,11 @@ module arith_pipeline(
         .in_b       (add_in_b),
         // Output side
         .out_valid  (add_out_valid),
-        .out_ready  (1),
+        .out_ready  (1'b1),
         .out_sum    (add_out_sum)
     );
 
-    always(posedge clk or rst_n) begin
+    always@(posedge clk or negedge rst_n) begin
         if(~rst_n) begin
             out_valid   <= 0;
             out_data    <= 0;
@@ -209,7 +211,7 @@ module arith_pipeline(
         end
         else if (s0_mode==2'b10) begin
             out_valid   <= 1;
-            out_data    <= rom_gelu[s0_data7:0];
+            out_data    <= rom_gelu[s0_data[7:0]];
         end
         else begin
             out_valid   <= 1;

@@ -36,8 +36,8 @@ module output_collector(
 
     // 输出
 	// Gating module side
-	output reg 				out_valid,
-	output reg	[255:0] 	out_sum
+	output wire 			out_valid,
+	output wire	[255:0] 	out_sum
 );
 
 	// spatial acc

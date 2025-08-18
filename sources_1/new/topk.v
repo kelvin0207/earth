@@ -77,10 +77,10 @@ module topk (
     assign min_score0_2 = (buffer_scores[4] < buffer_scores[5]) ? buffer_scores[4] : buffer_scores[5];
     assign min_score0_3 = (buffer_scores[6] < buffer_scores[7]) ? buffer_scores[6] : buffer_scores[7];
 
-    assign min_index0_0 = (buffer_scores[0] < buffer_scores[1]) ? 3'b0 : 3'b1;
-    assign min_index0_1 = (buffer_scores[2] < buffer_scores[3]) ? 3'b2 : 3'b3;
-    assign min_index0_2 = (buffer_scores[4] < buffer_scores[5]) ? 3'b4 : 3'b5;
-    assign min_index0_3 = (buffer_scores[6] < buffer_scores[7]) ? 3'b6 : 3'b7;
+    assign min_index0_0 = (buffer_scores[0] < buffer_scores[1]) ? 3'd0 : 3'd1;
+    assign min_index0_1 = (buffer_scores[2] < buffer_scores[3]) ? 3'd2 : 3'd3;
+    assign min_index0_2 = (buffer_scores[4] < buffer_scores[5]) ? 3'd4 : 3'd5;
+    assign min_index0_3 = (buffer_scores[6] < buffer_scores[7]) ? 3'd6 : 3'd7;
 
     // level 1
     wire [15:0] min_score1_0;
@@ -109,14 +109,16 @@ module topk (
 
     always @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
-            valid_out <= 1'b0;
-            out_idx   <= 0;
-            for (i = 0; i < K; i = i + 1) begin
+            valid_out   <= 1'b0;
+            out_idx     <= 0;
+            topk_score  <= 0;
+            topk_id     <= 0;
+            for (i = 0; i < 8; i = i + 1) begin
                 buffer_scores[i] <= 0;
                 buffer_ids[i]    <= 0;
             end
         end 
-        else if (valid_in & (score_in > min_score)) begin
+        else if (valid_in && (score_in > min_score)) begin
                 buffer_scores[min_index]    <= score_in;
                 buffer_ids[min_index]       <= id_in;
         end

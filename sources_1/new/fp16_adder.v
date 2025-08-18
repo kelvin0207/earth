@@ -154,7 +154,6 @@ module fp16_adder (
     // ----------------------------
     // Stage1 registers 
     // ----------------------------
-    reg         s1_valid;
     reg         s1_sign_large;
     reg [4:0]   s1_exp_large;
     reg [12:0]  s1_mant_sum;

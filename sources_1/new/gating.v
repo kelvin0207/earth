@@ -82,8 +82,8 @@ module gating_module (
     input  wire [255:0]      in_vec,
 
     // ===== Router 结果给主控：TopK 结果 =====
-    output reg               topk_done,
-    output reg  [23:0]       topk_indices, // 每个 index 4bits 示例；实际按你路由空间位宽改
+    output wire               topk_done,
+    output wire  [55:0]       topk_indices, // 每个 index 4bits 示例；实际按你路由空间位宽改
     // e.g. idx7(3bit), idx6, ..., idx0, 3*8bit=24bit in total
 
     // ===== 输出：在 ACT 模式或 AGG 最终结果需要向下游吐出时可用 =====
@@ -94,22 +94,26 @@ module gating_module (
     input  wire [63:0]           tbuf_rd_data, // 取四次
     input  wire                  tbuf_rd_valid,
     // 写新 psum / weights
-    output wire                  tbuf_wr_en, 
-    output wire [7:0]            tbuf_wr_addr,
-    output wire [63:0]           tbuf_wr_data // 分四次写回
+    output reg                   tbuf_wr_en, 
+    output reg  [7:0]            tbuf_wr_addr,
+    output reg  [63:0]           tbuf_wr_data // 分四次写回
 );
 
     assign in_ready = 1;
 
     // input FIFO, 类似FIFO，但是实际上就是一个buffer
     // 一次全填满
-    reg [16:0] FIFO [0:15];
+    reg [15:0] FIFO [0:15];
     reg [3:0]  read_idx; // 读16次
     reg [6:0]  expert_id;
 
-    always@(posedge clk or rst_n) begin
+    integer i;
+
+    always@(posedge clk or negedge rst_n) begin
         if(~rst_n) begin
-            FIFO    <= 0;
+            for (i=0; i<16; i=i+1) begin
+                FIFO[i]    <= 0;
+            end
         end
         else if (in_valid) begin
             FIFO[0 ] <= in_vec[(16*0 ) +: 16];
@@ -160,6 +164,7 @@ module gating_module (
 
     wire        out_valid;
     wire [15:0] out_data;
+
     arith_pipeline arith_pipeline(
         .clk        (clk),
         .rst_n      (rst_n),
@@ -180,13 +185,22 @@ module gating_module (
         end
         else if(cfg_mode==2'b11) begin
             tbuf_rd_en      <= 1;
-            tbuf_rd_addr    <= tbuf_rd_addr + 1l
+            tbuf_rd_addr    <= tbuf_rd_addr + 1;
         end
     end
 
-    output wire                  tbuf_wr_en, 
-    output wire [7:0]            tbuf_wr_addr,
-    output wire [63:0]           tbuf_wr_data // 分四次写回
+    always@(posedge clk or negedge rst_n) begin
+        if (~rst_n) begin
+            tbuf_wr_en      <= 0;
+            tbuf_wr_addr    <= 0;
+            tbuf_wr_data    <= 0;
+        end
+        else if (out_valid & cfg_mode[1]) begin
+            tbuf_wr_en      <= 1;
+            tbuf_wr_addr    <= tbuf_wr_data + 1;
+            tbuf_wr_data    <= {out_data, out_data, out_data, out_data};
+        end
+    end
     
 
 endmodule

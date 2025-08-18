@@ -54,7 +54,7 @@ module pe_array (
             // Extract this PE's weights
             wire [255:0] weights = in_int4s[(i*256) +: 256];
 
-            pe16 u_pe16 (
+            pe u_pe16 (
                 .clk        (clk),
                 .rst_n      (rst_n),
                 .in_fp16_0  (act0),
@@ -64,7 +64,7 @@ module pe_array (
                 .in_int4s   (weights),
                 .in_valid   (in_valid),
                 .in_ready   (pe_in_ready[i]),
-                .out_valid_vec(out_valid_vec[(i)]), // Each PE has its own valid
+                .out_valid  (out_valid_vec[i]), // Each PE has its own valid
                 .out_ready  (out_ready),
                 .out_fp16s  (out_fp16s[(i*256) +: 256])
             );

@@ -214,6 +214,17 @@ module acc_16_1 (
 	wire [15:0] s1_out_sum2;
 	wire [15:0] s1_out_sum3;
 
+	wire [1:0]  s2_out_valid;
+    wire [1:0]  s2_in_ready;
+
+	wire [15:0] s2_out_sum0;
+	wire [15:0] s2_out_sum1;
+	
+    wire        s3_in_valid;
+    wire        s3_in_ready;
+    wire [15:0] s3_in_a;
+    wire [15:0] s3_in_b;
+
 	fp16_adder adder1_0(
 		.clk       (clk),
 		.rst_n     (rst_n),
@@ -271,11 +282,6 @@ module acc_16_1 (
     // -------------------------
     // Join: pair (0,1)->0 ; (2,3)->1
 
-	wire [1:0]  s2_out_valid;
-    wire [1:0]  s2_in_ready;
-
-	wire [15:0] s2_out_sum0;
-	wire [15:0] s2_out_sum1;
 
 	fp16_adder adder2_0(
 		.clk       (clk),
@@ -306,10 +312,6 @@ module acc_16_1 (
     // -------------------------
     // Stage 3: 2 -> 1 adder (root)
     // -------------------------
-    wire        s3_in_valid;
-    wire        s3_in_ready;
-    wire [15:0] s3_in_a;
-    wire [15:0] s3_in_b;
 
     // Root adder
     fp16_adder add3_root (

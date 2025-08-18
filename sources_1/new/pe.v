@@ -59,15 +59,15 @@ module pe(
     output wire         in_ready,
 
     // per-DPU output handshake and results
-    output wire [15:0]  out_valid_vec,
-    input  wire [15:0]  out_ready_vec,
+    output wire 	 	out_valid,
+    input  wire 	  	out_ready,
     output wire [255:0] out_fp16s   // { dpu15.out(15:0), ..., dpu0.out(15:0) }
 );
 
     // internal wires for each dpu
     wire [15:0] dpu_out_fp16  [0:15];
-    wire        dpu_out_valid  [0:15];
-    wire        dpu_in_ready   [0:15];
+    wire [15:0] dpu_out_valid;
+    wire [15:0] dpu_in_ready;
 
     // flatten mapping helpers (we will assemble out_fp16s and out_valid_vec later)
     genvar i;
@@ -104,7 +104,7 @@ module pe(
                 .in_int4_2   (w2),
                 .in_int4_3   (w3),
                 .out_valid   (dpu_out_valid[i]),
-                .out_ready   (out_ready_vec[i]),
+                .out_ready   (out_ready),
                 .out_fp16    (dpu_out_fp16[i])
             );
         end
@@ -115,6 +115,7 @@ module pe(
     assign all_ready = &dpu_in_ready; // bitwise AND across 16 wires
     assign in_ready = all_ready;
 
+	wire [15:0] out_valid_vec;
     // Collect outputs into vectors / flat bus
     // out_valid_vec: simple mapping
     genvar k;
@@ -128,6 +129,8 @@ module pe(
             assign out_fp16s[out_start +: 16] = dpu_out_fp16[k];
         end
     endgenerate
+
+	assign out_valid = & out_valid_vec;
 
 endmodule
 
