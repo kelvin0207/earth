@@ -14,7 +14,7 @@ set TARGET_LIB  "/home/yangjingkui/CodeField/earth/lib/tcbn28hpcplusbwp12t40p140
 set timestamp [clock format [clock seconds] -format "%Y%m%d_%H%M%S"]
 
 # 设置输出目录为 syn/syn_时间戳
-set REPORT_DIR "./syn/syn_$timestamp"
+set REPORT_DIR "./syn_rpt_$timestamp"
 
 # 如果目录不存在则创建
 if {![file isdirectory $REPORT_DIR]} {
@@ -35,11 +35,23 @@ set file_data [read $fp]
 close $fp
 set file_lines [split $file_data "\n"]
 
+# foreach f $file_lines {
+#     if {$f ne ""} {
+#         read_verilog $f
+#     }
+# }
+
+# 先 analyze 所有 RTL 文件
+# 可配置参数的模块必须要使用analyze而不是read_verilog
 foreach f $file_lines {
     if {$f ne ""} {
-        read_verilog $f
+        analyze -format verilog $f
     }
 }
+
+# 解析并 link 顶层模块
+elaborate  $DESIGN_NAME
+
 
 # ========== 设置顶层 ==========
 current_design $DESIGN_NAME
@@ -47,14 +59,26 @@ current_design $DESIGN_NAME
 # ========== 读约束 ==========
 read_sdc $SDC_FILE
 
-# ========== 编译综合 ==========
-compile_ultra -timing
+# ========== 编译综合(快速) ==========
+compile -map_effort medium
 
 # ========== 报告 ==========
 report_area  > $REPORT_DIR/${DESIGN_NAME}_area.rpt
 report_power > $REPORT_DIR/${DESIGN_NAME}_power.rpt
 report_timing -max_paths 20 > $REPORT_DIR/${DESIGN_NAME}_timing.rpt
 
-# ========== 导出结果 ==========
-write_verilog -hierarchy -output $NETLIST_OUT
-write_sdc -output $SDC_OUT
+
+# ========== 编译综合(优化) ==========
+reset_design
+elaborate $DESIGN_NAME
+link
+compile_ultra -timing
+
+# ========== 报告 ==========
+report_area  > $REPORT_DIR/${DESIGN_NAME}_area_opt.rpt
+report_power > $REPORT_DIR/${DESIGN_NAME}_power_opt.rpt
+report_timing -max_paths 20 > $REPORT_DIR/${DESIGN_NAME}_timing_opt.rpt
+
+#  ========== 导出结果 ==========
+# write_verilog -hierarchy -output $NETLIST_OUT
+# write_sdc -output $SDC_OUT

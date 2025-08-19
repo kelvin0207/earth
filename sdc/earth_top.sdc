@@ -1,6 +1,7 @@
-# 创建顶层时钟，周期 1ns -> 1GHz
+# 创建顶层时钟，周期 2ns -> 0.5GHz
+# 1GHz 时序不满足
 # 定义时钟
-create_clock -name clk -period 1.0 [get_ports clk] -waveform {0 0.5}
+create_clock -name clk -period 2.0 [get_ports clk] -waveform {0 1.0}
 
 # 复位信号通常不约束（异步）
 set_false_path -from [get_ports rst_n]

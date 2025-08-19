@@ -78,7 +78,7 @@ module weight_buffer(
 
     // inst sram wrapper
     sram16_wrapper #(
-        .ADDR_WIDTH(2),
+        .ADDR_WIDTH(8),
         .DATA_WIDTH(256)
     ) sram_inst (
         .clk        (clk),

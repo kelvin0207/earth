@@ -111,6 +111,8 @@ module arith_pipeline(
     reg [15:0]  add_in_b;
     wire         add_out_valid;
 
+    integer i;
+    
     always@(posedge clk or negedge rst_n) begin
         if(~rst_n) begin
             buffer_idx <= 0;
